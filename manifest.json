@@ -1,0 +1,10 @@
+{
+  "id": "bo-nao-3d",
+  "name": "Bộ Não 3D",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Dựng vault của bạn thành hình bộ não ba chiều phát sáng, chia 6 vùng giải phẫu theo quy tắc bạn tự khai báo trong Settings. Kèm bảng Phân tích / Trọng tâm / Gần đây / Cầu nối liên vùng, ô tìm nhanh, và thanh Đang xem đồng bộ với note bạn đang mở.",
+  "author": "Nhã",
+  "authorUrl": "https://github.com/trangnha-nava",
+  "isDesktopOnly": true
+}

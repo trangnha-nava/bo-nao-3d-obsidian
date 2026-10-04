@@ -1,0 +1,175 @@
+/* Bộ Não 3D */
+.n3-root { padding: 0 !important; overflow: hidden; }
+.n3-host { position: relative; width: 100%; height: 100%; background: #05070d;
+  overflow: hidden; }
+
+/* KHÔNG ép canvas lên lớp compositing riêng (từng dùng translateZ(0) + will-change +
+   contain:layout paint size trên .n3-host). Tổ hợp ép lớp đó gây lỗi thật trên
+   Obsidian/Electron: từng mảng hình vuông trắng/xanh không được vẽ lại, đổi hình
+   mỗi khung — GPU compositor giữ một tile cũ và không chịu làm mới khi có quá
+   nhiều lớp ghép chồng nhau. Bỏ ép lớp, để trình duyệt tự quyết — ổn định hơn. */
+.n3-canvas { display: block; width: 100%; height: 100%; cursor: grab;
+  position: absolute; inset: 0; z-index: 0; }
+.n3-empty { color: #7f8ba3; padding: 40px; font-size: 13px; max-width: 480px; line-height: 1.6; }
+.n3-empty-t { font-size: 16px; font-weight: 650; color: #cfdcf2; margin-bottom: 8px; }
+.n3-empty .n3-btn { display: inline-block; width: auto; margin: 14px 0 0; }
+
+/* Ô JSON quy tắc vùng trong Settings */
+.n3-rules-area { width: 100%; min-height: 220px; font-family: var(--font-monospace, monospace);
+  font-size: 12px; line-height: 1.5; padding: 8px; box-sizing: border-box; }
+
+.n3-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  font-family: var(--font-interface, system-ui, sans-serif); }
+
+/* KHÔNG dùng backdrop-filter ở đây. Bảng nằm đè lên canvas vẽ lại liên tục,
+   nên mỗi khung hình trình duyệt phải làm mờ lại toàn bộ vùng dưới bảng —
+   đó là nguyên nhân giật nặng nhất, nặng hơn cả phần vẽ 3D. Nền đặc mờ nhìn
+   gần như y hệt mà không tốn gì. */
+.n3-panel { position: absolute; top: 12px; bottom: 12px; width: 268px;
+  display: flex; flex-direction: column; pointer-events: auto;
+  background: #0a0f19; border: 1px solid rgba(126,182,255,.15);
+  border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  color: #cfdcf2; overflow: hidden; }
+.n3-left { left: 12px; }
+.n3-right { right: 12px; width: 292px; }
+.n3-panel.is-off { display: none; }
+
+/* Khung hẹp: bảng thu lại, mở từng cái một qua thanh nút trên đỉnh */
+.n3-host.is-narrow .n3-panel { top: 46px; width: auto; max-width: 320px;
+  left: 12px; right: 12px; }
+.n3-tabs { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;
+  pointer-events: auto; z-index: 3; }
+.n3-tab { padding: 5px 11px; border-radius: 8px; font-size: 11.5px; cursor: pointer;
+  color: #9db0d0; background: #0a0f19; border: 1px solid rgba(126,182,255,.15); }
+.n3-tab:hover { color: #e8f1ff; }
+.n3-tab.is-on { color: #fff; background: rgba(126,182,255,.2);
+  border-color: rgba(126,182,255,.35); }
+.n3-host:not(.is-narrow) .n3-tabs { display: none; }
+
+/* Bốn tab con trong bảng phải: Phân tích / Trọng tâm / Gần đây / Cầu nối — luôn
+   hiện, không phụ thuộc khung hẹp hay rộng, vì đây là chọn NỘI DUNG chứ không
+   phải ẩn/hiện bảng. */
+.n3-rtabs { display: flex; gap: 3px; padding: 10px 10px 0; flex: none; }
+.n3-rtab { flex: 1; padding: 7px 3px; border-radius: 7px; font-size: 10px;
+  text-align: center; cursor: pointer; color: #8697b5; background: transparent;
+  border: 1px solid rgba(126,182,255,.1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.n3-rtab:hover { color: #dceaff; background: rgba(126,182,255,.07); }
+.n3-rtab.is-on { color: #fff; background: rgba(126,182,255,.18);
+  border-color: rgba(126,182,255,.32); }
+
+/* Ô tìm nhanh ở bảng trái */
+.n3-search { padding: 9px 11px 0; flex: none; }
+.n3-search-i { width: 100%; box-sizing: border-box; padding: 7px 10px;
+  border-radius: 8px; border: 1px solid rgba(126,182,255,.18);
+  background: rgba(126,182,255,.06); color: #eaf2ff; font-size: 12px;
+  font-family: inherit; }
+.n3-search-i::placeholder { color: #5d6c88; }
+.n3-search-i:focus { outline: none; border-color: rgba(126,182,255,.4);
+  background: rgba(126,182,255,.1); }
+
+.n3-h { padding: 13px 14px 11px; border-bottom: 1px solid rgba(126,182,255,.11); }
+.n3-h-t { display: block; font-size: 13px; font-weight: 650; color: #eaf2ff; letter-spacing: .2px; }
+.n3-h-s { display: block; margin-top: 3px; font-size: 10.5px; color: #6f7f9b; }
+
+.n3-scroll { flex: 1; overflow-y: auto; padding: 8px 9px 12px; }
+.n3-scroll::-webkit-scrollbar { width: 7px; }
+.n3-scroll::-webkit-scrollbar-thumb { background: rgba(126,182,255,.16); border-radius: 4px; }
+
+.n3-sec { margin: 11px 5px 5px; font-size: 9.5px; text-transform: uppercase;
+  letter-spacing: .9px; color: #5d6c88; }
+.n3-sub { margin: 14px 5px 6px; font-size: 10.5px; font-weight: 600; color: #90a3c4; }
+
+.n3-grp, .n3-row { display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 6px 8px; border: 0; border-radius: 7px; background: transparent;
+  color: #b9c8e2; font-size: 12px; text-align: left; cursor: pointer; }
+.n3-grp:hover, .n3-row:hover { background: rgba(126,182,255,.09); color: #e8f1ff; }
+.n3-grp.is-on { background: rgba(126,182,255,.17); color: #fff; box-shadow: inset 2px 0 0 #7fb6ff; }
+.n3-grp-n, .n3-row-n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.n3-grp-c, .n3-row-c { font-size: 10.5px; color: #6f7f9b; font-variant-numeric: tabular-nums; }
+.n3-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+/* Hàng "cầu nối": hai nhóm xếp chồng + số liên kết, để phân biệt với n3-row một chiều */
+.n3-bridge { display: block; width: 100%; padding: 7px 8px; margin: 3px 0;
+  border: 0; border-radius: 7px; background: rgba(126,182,255,.04);
+  color: #b9c8e2; font-size: 12px; text-align: left; cursor: pointer; position: relative; }
+.n3-bridge:hover { background: rgba(126,182,255,.1); }
+.n3-bridge-r { display: flex; align-items: center; gap: 8px; padding: 1px 0; }
+.n3-bridge-c { display: block; margin-top: 3px; font-size: 10px; color: #6f7f9b; }
+
+.n3-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 4px 4px 2px; }
+.n3-kpi { padding: 9px 10px; border-radius: 9px; background: rgba(126,182,255,.06);
+  border: 1px solid rgba(126,182,255,.09); }
+.n3-kpi-v { font-size: 18px; font-weight: 640; color: #eaf2ff; line-height: 1.15;
+  font-variant-numeric: tabular-nums; }
+.n3-kpi-l { margin-top: 2px; font-size: 9.5px; color: #6f7f9b; }
+.n3-kpi-ok  { background: rgba(64,220,168,.07); border-color: rgba(64,220,168,.18); }
+.n3-kpi-ok .n3-kpi-v { color: #58e0b0; }
+.n3-kpi-warn { background: rgba(255,168,84,.07); border-color: rgba(255,168,84,.2); }
+.n3-kpi-warn .n3-kpi-v { color: #ffb567; }
+
+.n3-bar { height: 6px; margin: 2px 5px 6px; border-radius: 4px;
+  background: rgba(126,182,255,.12); overflow: hidden; }
+.n3-bar-a { height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #4fd6ff, #7f9bff); }
+
+.n3-note { margin: 7px 5px 2px; font-size: 10.5px; line-height: 1.55; color: #8697b5; }
+
+.n3-btn { display: block; width: calc(100% - 10px); margin: 9px 5px 0; padding: 8px 10px;
+  border-radius: 8px; border: 1px solid rgba(126,182,255,.22);
+  background: rgba(126,182,255,.1); color: #dceaff; font-size: 11.5px;
+  cursor: pointer; text-align: left; }
+.n3-btn:hover { background: rgba(126,182,255,.2); }
+.n3-btn-warn { border-color: rgba(255,168,84,.28); background: rgba(255,168,84,.1); color: #ffd6a8; }
+.n3-btn-warn:hover { background: rgba(255,168,84,.19); }
+.n3-btn-ghost { border-color: rgba(126,182,255,.14); background: transparent; color: #8697b5; }
+
+.n3-foot { padding: 9px 9px 11px; border-top: 1px solid rgba(126,182,255,.11); }
+
+.n3-legend { position: absolute; left: 0; right: 0; bottom: 10px; z-index: 4; text-align: center;
+  font-size: 10.5px; color: #4e5c76; letter-spacing: .3px; }
+
+/* Thanh "Đang xem" — note đang mở ở leaf khác, ghim trên-giữa, bấm để lấy nét nhóm đó */
+.n3-now { position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  z-index: 3; display: flex; align-items: center; gap: 7px; padding: 6px 12px 6px 10px;
+  border-radius: 999px; background: #0a0f19; border: 1px solid rgba(126,182,255,.22);
+  box-shadow: 0 4px 14px rgba(0,0,0,.4); pointer-events: auto; cursor: pointer; }
+.n3-now:hover { background: rgba(126,182,255,.14); }
+.n3-now-l { font-size: 9.5px; text-transform: uppercase; letter-spacing: .6px; color: #6f7f9b; }
+.n3-now-t { font-size: 11.5px; font-weight: 600; color: #eaf2ff; max-width: 220px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.n3-tip { position: absolute; z-index: 5; pointer-events: none;
+  padding: 5px 9px; border-radius: 7px; font-size: 11px; color: #eaf2ff;
+  background: #0a0f19; border: 1px solid rgba(126,182,255,.22); white-space: nowrap; }
+
+/* Bảng báo lỗi — thay cho khung đen câm */
+.n3-err { position: absolute; inset: 24px; overflow: auto; padding: 18px 20px;
+  border-radius: 12px; background: #0a0f19; border: 1px solid rgba(255,120,120,.3);
+  color: #e8d8d8; font-family: var(--font-interface, system-ui, sans-serif); }
+.n3-err-t { font-size: 14px; font-weight: 650; color: #ff9b9b; margin-bottom: 8px; }
+.n3-err-m { font-size: 12px; line-height: 1.6; color: #d8c6c6; margin-bottom: 6px; }
+.n3-err-s { font-size: 10.5px; line-height: 1.5; color: #9aa6bd; white-space: pre-wrap;
+  background: rgba(126,182,255,.06); padding: 10px; border-radius: 8px; margin-top: 10px; }
+
+/* Chú giải sáu vùng ở bảng trái */
+.n3-sub2 { margin: 12px 5px 5px; font-size: 9.5px; text-transform: uppercase;
+  letter-spacing: .9px; color: #5d6c88; }
+.n3-part { display: block; width: 100%; text-align: left; cursor: pointer;
+  margin: 5px 0; padding: 9px 10px; border-radius: 9px; border: 1px solid rgba(126,182,255,.1);
+  background: rgba(126,182,255,.04); color: #c6d4ec; }
+.n3-part:hover { background: rgba(126,182,255,.1); }
+.n3-part.is-on { background: rgba(126,182,255,.16); border-color: rgba(126,182,255,.34); }
+.n3-part-h { display: flex; align-items: center; gap: 8px; }
+.n3-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.n3-part-n { flex: 1; font-size: 12px; font-weight: 600; color: #e6eeff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.n3-part-c { font-size: 10px; color: #7b8aa6; font-variant-numeric: tabular-nums; }
+.n3-pbar { height: 4px; margin: 7px 0 6px; border-radius: 3px;
+  background: rgba(126,182,255,.1); overflow: hidden; }
+.n3-pbar-a { height: 100%; border-radius: 3px; }
+.n3-part-s { font-size: 10px; color: #8697b5; }
+.n3-part-g { margin-top: 3px; font-size: 10px; line-height: 1.5; color: #6b7b98; }
+
+.n3-wait { position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: #6f7f9b; font-size: 12.5px;
+  font-family: var(--font-interface, system-ui, sans-serif); }

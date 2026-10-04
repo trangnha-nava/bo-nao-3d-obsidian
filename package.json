@@ -1,0 +1,22 @@
+{
+  "name": "bo-nao-3d",
+  "version": "1.0.0",
+  "description": "Obsidian plugin: dựng vault thành hình bộ não ba chiều, chia 6 vùng giải phẫu theo quy tắc tự khai báo.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=cjs --platform=browser --target=es2018 --external:obsidian --outfile=dist/main.js",
+    "test": "echo \"no automated tests\" && exit 0"
+  },
+  "keywords": ["obsidian", "obsidian-plugin", "graph", "visualization", "3d"],
+  "author": "Lê Nguyễn Trang Nhã",
+  "license": "MIT",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trangnha-nava/bo-nao-3d-obsidian.git"
+  },
+  "dependencies": {
+    "esbuild": "^0.24.0",
+    "three": "^0.169.0"
+  }
+}
